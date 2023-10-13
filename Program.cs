@@ -97,7 +97,40 @@ namespace export_data
                 name: "--exclude-field",
                 description: "List of fields to exclude in the export. Example: --exclude-field field1 --exclude-field field2.",
                 getDefaultValue: () => null);
-
+            var filePathOption = new Option<string>(
+                name: "--file-path",
+                description: "Location of your JSON file.",
+                getDefaultValue: () => null);
+            
+            var mergePartitionedDataCommand = new Command("merge-data", "Merges partitioned data into a single JSON Lines file")
+            {
+                exportDirectoryOption
+            };
+            
+            mergePartitionedDataCommand.SetHandler((exportDirectory) =>
+            {
+                var jsonMerger = new JsonDataMerger(exportDirectory);
+                jsonMerger.MergeDirectoryJsons();
+                
+            }, exportDirectoryOption);
+            
+            var generateCommandsFromJson = new Command("generate-commands", "Merges partitioned data into a single JSON Lines file")
+            {
+                filePathOption
+            };
+            
+            generateCommandsFromJson.SetHandler((filePath) =>
+            {
+                var commandGenerator = new CommandGenerator(filePath);
+                Console.WriteLine();
+                commandGenerator.PrinSqlTableCreationCommand();
+                Console.WriteLine();
+                commandGenerator.PrintSqlInsertCommand();
+                Console.WriteLine();
+                
+            }, filePathOption);
+            
+            
             var boundsCommand = new Command("get-bounds", "Find and display the largest and lowest value for the specified field. Used to determine how to partition index data for export")
             {
                 endpointOption,
@@ -250,6 +283,8 @@ namespace export_data
 
             var rootCommand = new RootCommand(description: "Export data from a search index. Requires a filterable and sortable field.")
             {
+                mergePartitionedDataCommand,
+                generateCommandsFromJson,
                 boundsCommand,
                 partitionCommand,
                 exportPartitionsCommand,

@@ -4,7 +4,10 @@ namespace export_data;
 
 public class JsonDataMerger
 {
-    private string _exportDirectoryPath;
+    private const string ExportResultFolderName = "merge-result";
+    private const string ExportResultFileName = "merged.json";
+
+    private readonly string _exportDirectoryPath;
 
     public JsonDataMerger(string exportDirectoryPath)
     {
@@ -16,48 +19,65 @@ public class JsonDataMerger
         _exportDirectoryPath = exportDirectoryPath;
     }
 
-    public void MergeDirectoryJsons()
+    public void MergeDirectoryJsonFiles()
     {
-        if (Directory.Exists(Path.Combine(_exportDirectoryPath, "merged.json")))
-        {
-            File.Delete(Path.Combine(_exportDirectoryPath, "merged.json"));
-        }
+        using var resultFile = CreateNewResultFile();
         
-        using var destinationJsonFile = File.CreateText(Path.Combine(_exportDirectoryPath, "merged.json"));
+        FindDirectoryFilesAndMergeThem(resultFile);
+    }
 
-        destinationJsonFile.WriteLine("[");
+    private void FindDirectoryFilesAndMergeThem(TextWriter resultJsonFile)
+    {
+        resultJsonFile.WriteLine("[");
 
         var files = Directory.GetFiles(_exportDirectoryPath, "*.json");
-        var dataFileLength = files.Length - 1;
+        var dataFileLength = files.Length;
+
         for (var i = 0; i < dataFileLength; i++)
         {
             var filePath = files[i];
             var fileContent = File.ReadAllText(filePath);
-            var jsonObjects = fileContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries); 
-            
-            for (var j = 0; j < jsonObjects.Length; j++)
+
+            var fileJsonObjects =
+                fileContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var fileJsonObjectCount = fileJsonObjects.Length;
+
+            for (var j = 0; j < fileJsonObjectCount; j++)
             {
-                var jsonObject = jsonObjects[j];
+                var jsonObject = fileJsonObjects[j];
 
                 if (string.IsNullOrWhiteSpace(jsonObject)) continue;
-                
-                if (i == dataFileLength - 1 && j == jsonObjects.Length - 1)
+
+                if (i == dataFileLength - 1 && j == fileJsonObjectCount - 1)
                 {
-                    destinationJsonFile.WriteLine(JObject.Parse(jsonObject));
+                    resultJsonFile.WriteLine(JObject.Parse(jsonObject));
                 }
                 else
                 {
-                    destinationJsonFile.WriteLine(JObject.Parse(jsonObject) + ",");
+                    resultJsonFile.WriteLine(JObject.Parse(jsonObject) + ",");
                 }
             }
 
-            Console.WriteLine($"Completed File {i + 1} of {dataFileLength}");
-            
-            destinationJsonFile.Flush();
+            Console.WriteLine($"Completed File {i + 1} of {dataFileLength}.");
+
+            resultJsonFile.Flush();
         }
-        
-        destinationJsonFile.WriteLine("]");
-        
-        Console.WriteLine($"Merge Complete.");
+
+        resultJsonFile.WriteLine("]");
+
+        Console.WriteLine("Merge Complete.");
+    }
+
+    private StreamWriter CreateNewResultFile()
+    {
+        var resultPath = Path.GetFullPath($@"{_exportDirectoryPath}\{ExportResultFolderName}\{ExportResultFileName}");
+
+        if (File.Exists(resultPath)) File.Delete(resultPath);
+
+        Directory.CreateDirectory($@"{_exportDirectoryPath}\{ExportResultFolderName}");
+
+        var resultFile = File.CreateText(resultPath);
+
+        return resultFile;
     }
 }

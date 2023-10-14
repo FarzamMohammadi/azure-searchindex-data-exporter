@@ -102,7 +102,7 @@ namespace export_data
                 description: "Location of your JSON file.",
                 getDefaultValue: () => null);
             
-            var mergePartitionedDataCommand = new Command("merge-data", "Merges partitioned data into a single JSON Lines file")
+            var mergePartitionedDataCommand = new Command("merge-data", "Merges partitioned data into a single JSON file.")
             {
                 exportDirectoryOption
             };
@@ -110,7 +110,7 @@ namespace export_data
             mergePartitionedDataCommand.SetHandler((exportDirectory) =>
             {
                 var jsonMerger = new JsonDataMerger(exportDirectory);
-                jsonMerger.MergeDirectoryJsons();
+                jsonMerger.MergeDirectoryJsonFiles();
                 
             }, exportDirectoryOption);
             
@@ -123,7 +123,7 @@ namespace export_data
             {
                 var commandGenerator = new CommandGenerator(filePath);
                 Console.WriteLine();
-                commandGenerator.PrinSqlTableCreationCommand();
+                commandGenerator.PrintSqlTableCreationCommand();
                 Console.WriteLine();
                 commandGenerator.PrintSqlInsertCommand();
                 Console.WriteLine();

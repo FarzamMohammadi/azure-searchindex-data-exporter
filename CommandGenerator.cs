@@ -16,7 +16,7 @@ public class CommandGenerator
         _jsonFilePath = jsonFilePath;
     }
 
-    public void PrinSqlTableCreationCommand()
+    public void PrintSqlTableCreationCommand()
     {
         var jsonObjectStr = GetFirstLineOfJson();
 

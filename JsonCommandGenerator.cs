@@ -1,24 +1,17 @@
-﻿using Newtonsoft.Json;
+﻿using export_data.CommandGeneration;
+using Newtonsoft.Json;
 
 namespace export_data;
 
-public class CommandGenerator
+public class JsonCommandGenerator : CommandGenerator
 {
-    private string _jsonFilePath;
-
-    public CommandGenerator(string jsonFilePath)
+    public JsonCommandGenerator(string jsonFilePath) : base(jsonFilePath)
     {
-        if (!File.Exists(jsonFilePath))
-        {
-            throw new DirectoryNotFoundException($"The specified directory does not exist: {jsonFilePath}");
-        }
-
-        _jsonFilePath = jsonFilePath;
     }
 
     public void PrintSqlTableCreationCommand()
     {
-        var jsonObjectStr = GetFirstLineOfJson();
+        var jsonObjectStr = GetFirstLineOfFile();
 
         var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonObjectStr);
 
@@ -33,11 +26,10 @@ public class CommandGenerator
 
     public void PrintSqlInsertCommand()
     {
-        var jsonObjectStr = GetFirstLineOfJson();
+        var jsonObjectStr = GetFirstLineOfFile();
 
         var jsonObject = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonObjectStr);
 
-        // Start constructing the SQL command string
         var columns = string.Join(", ", jsonObject.Keys);
         var sqlCommand = $@"
 INSERT INTO YourTableName ({columns})
@@ -46,12 +38,5 @@ INSERT INTO YourTableName ({columns})
 ";
 
         Console.WriteLine(sqlCommand);
-    }
-
-    private string GetFirstLineOfJson()
-    {
-        using var streamReader = new StreamReader(_jsonFilePath);
-
-        return streamReader.ReadLine();
     }
 }

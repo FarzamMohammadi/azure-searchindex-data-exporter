@@ -110,18 +110,20 @@ namespace export_data
             mergePartitionedDataCommand.SetHandler((exportDirectory) =>
             {
                 var jsonMerger = new JsonDataMerger(exportDirectory);
+                
                 jsonMerger.MergeDirectoryJsonFiles();
                 
             }, exportDirectoryOption);
             
-            var generateCommandsFromJson = new Command("generate-commands", "Merges partitioned data into a single JSON Lines file")
+            var generateCommandsFromJson = new Command("generate-commands-json", "Merges partitioned data into a single JSON Lines file")
             {
                 filePathOption
             };
             
             generateCommandsFromJson.SetHandler((filePath) =>
             {
-                var commandGenerator = new CommandGenerator(filePath);
+                var commandGenerator = new JsonCommandGenerator(filePath);
+                
                 Console.WriteLine();
                 commandGenerator.PrintSqlTableCreationCommand();
                 Console.WriteLine();
@@ -130,6 +132,20 @@ namespace export_data
                 
             }, filePathOption);
             
+            var generateCommandsFromCsv = new Command("generate-commands-csv", "Merges partitioned data into a single CSV Lines file")
+            {
+                filePathOption
+            };
+            
+            generateCommandsFromCsv.SetHandler((filePath) =>
+            {
+                var commandGenerator = new CsvCommandGenerator(filePath);
+
+                Console.WriteLine();
+                commandGenerator.PrintSqlTableCreationCommand();
+                Console.WriteLine();
+                
+             }, filePathOption);
             
             var boundsCommand = new Command("get-bounds", "Find and display the largest and lowest value for the specified field. Used to determine how to partition index data for export")
             {
@@ -285,6 +301,7 @@ namespace export_data
             {
                 mergePartitionedDataCommand,
                 generateCommandsFromJson,
+                generateCommandsFromCsv,
                 boundsCommand,
                 partitionCommand,
                 exportPartitionsCommand,
